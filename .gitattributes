@@ -1,0 +1,9 @@
+# 一键启动.bat 是 GBK 编码的批处理，cmd 要求 CRLF 换行。
+# 强制检出为 CRLF，保证在任何平台 clone 下来都能直接双击运行。
+# （GBK 多字节字符的后续字节不会落在 0x0A/0x0D，换行转换不会破坏编码。）
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 图标按二进制处理，避免任何转换
+*.ico binary
+*.png binary

@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+build/
+dist/
+*.spec
+reports/
+
+# 扫描报告：含本机真实文件路径，禁止提交到公开仓库
+clearC_report_*.json
+report.json
+
+# 本地文件（Windows 目录标记 / 旧图标备份）
+desktop.ini
+app_old.ico
