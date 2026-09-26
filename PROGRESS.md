@@ -148,5 +148,7 @@ git add -A && git commit -m "..." && git push
       若打算开源需补 LICENSE；若保持闭源商用，建议在 README 里写明授权条款
 - [ ] 代码签名：目前 exe 未签名，分发时 Windows SmartScreen 会提示未知发布者
 - [ ] 打包体积可优化（当前 onefile 含整个 Qt，可用 `--exclude-module` 裁剪未用模块）
+- [ ] `req.txt` 名字与 `requirements.txt` 太像，容易误认成依赖清单，其实是最初的需求
+      描述。建议改名（如 `需求说明.md`），待确认
 - [ ] 一条遗留提问：早前一轮修订里用户提到过 `3）…` 但话没说完，始终未澄清，
       如仍需要请补充说明
