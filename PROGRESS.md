@@ -2,7 +2,8 @@
 
 > 最后更新：2026-09-27
 > 当前版本：`0.1.0`（见 `app/__init__.py`）
-> 状态：**功能完整，可打包分发**；18/18 冒烟测试通过，`dist\ClearC.exe` 已构建并验证启动。
+> 状态：**功能完整，可打包分发**；18/18 冒烟测试通过，`dist\ClearC.exe`（22.9 MiB）
+> 已构建并验证启动。
 
 ---
 
@@ -90,9 +91,41 @@ python tools/make_icon.py
 
 # 打包 exe —— 必须先杀掉正在运行的进程，否则 dist 被占用删不掉
 taskkill //F //IM ClearC.exe
-python -m PyInstaller --noconfirm --onefile --windowed --name ClearC \
-    --icon app.ico --add-data "app.ico;." main.py
+python -m PyInstaller --noconfirm ClearC.spec
+
+# 查看打包结果里都有什么、谁占大头（裁剪体积时用）
+python tools/bundle_report.py
 ```
+
+**打包配置全部在 `ClearC.spec` 里**，不要再在命令行堆 `--onefile --windowed` 之类的
+参数——会和 spec 冲突或被忽略。spec 已经进版本管理（`.gitignore` 里 `!ClearC.spec`）。
+
+### 体积裁剪（47.4 MiB → 22.9 MiB，-51.8%）
+
+程序只用 `QtCore / QtGui / QtWidgets`，但 PySide6 的 hook 会把整套 Qt 收进来。
+`ClearC.spec` 分两层裁：
+
+1. `EXCLUDES` —— 不参与分析的 Python 模块（QML/Quick、Pdf、Network、OpenGL、
+   虚拟键盘、Sql、Test、`ssl`/`_ssl`、tkinter、PIL、numpy…），从源头断依赖；
+2. `_keep()` —— 模块排除后 hook 仍会按目录收集 DLL / 插件 / 翻译，在 Analysis
+   之后按文件名再筛一遍。
+
+剔掉的大件（压缩后）：`opengl32sw.dll` 7.31 MiB、QML/Quick 栈约 5.2 MiB、
+`Qt6Pdf` 2.35 MiB、OpenSSL 4.55 MiB（含 Python 与 Qt 各一份）、
+96 个翻译文件 1.85 MiB、`Qt6Network` + 网络/TLS 插件约 1.3 MiB、多余平台插件与
+图片格式插件约 1.6 MiB。
+
+**保留清单（改 `DROP_NAMES` 时务必别误删）**：`qwindows.dll`（平台插件，没了程序
+起不来）、`qico.dll`（读 `app.ico`，窗口图标与关于页要用）、`qoffscreen.dll`
+（留着便于对打包结果做无窗口自检）、`Qt6Core|Gui|Widgets.dll`、`qmodernwindowsstyle.dll`。
+
+**没用 UPX**：本机没装，且 UPX 压过的 exe 是杀毒软件误报的经典特征，清理工具本来
+就容易触发 SmartScreen，不划算。spec 里显式 `upx=False` 并注明原因，免得以后有人
+装了 UPX 导致构建结果悄悄变化。
+
+**验证方法**：`MainWindowHandle` 在本环境恒为 0（会话不在交互式窗口站），不能据此
+判断失败。改为**检查 GUI 进程实际加载的 DLL**——`qwindows.dll` 载入即证明平台插件
+成功、窗口已建立（缺失时 Qt 会立即 `qFatal` 崩溃）。
 
 给用户用：双击 `一键启动.bat` 即可（自动弹 UAC 提权）。
 
@@ -147,7 +180,9 @@ git add -A && git commit -m "..." && git push
 - [ ] **许可证未定**：仓库是公开的，但没放 LICENSE 文件，法律上默认「保留所有权利」。
       若打算开源需补 LICENSE；若保持闭源商用，建议在 README 里写明授权条款
 - [ ] 代码签名：目前 exe 未签名，分发时 Windows SmartScreen 会提示未知发布者
-- [ ] 打包体积可优化（当前 onefile 含整个 Qt，可用 `--exclude-module` 裁剪未用模块）
+- [x] ~~打包体积优化~~ 已完成：用 `ClearC.spec` 裁掉未使用的 Qt 组件，体积见上一节
+- [ ] 还可再压：`Qt6Svg.dll`（0.25 MiB）理论上用不到，但 Windows 11 样式的
+      `qmodernwindowsstyle` 是否依赖它没实测过，砍之前要先确认样式不坏
 - [ ] `req.txt` 名字与 `requirements.txt` 太像，容易误认成依赖清单，其实是最初的需求
       描述。建议改名（如 `需求说明.md`），待确认
 - [ ] 一条遗留提问：早前一轮修订里用户提到过 `3）…` 但话没说完，始终未澄清，

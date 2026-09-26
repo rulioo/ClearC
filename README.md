@@ -30,9 +30,15 @@ python -m app scan --drives C,D            # 只扫 C、D 盘
 ```bash
 pip install pyinstaller
 python tools/make_icon.py
-python -m PyInstaller --noconfirm --onefile --windowed --name ClearC --icon app.ico --add-data "app.ico;." main.py
+python -m PyInstaller --noconfirm ClearC.spec
 # 产物：dist/ClearC.exe
 ```
+
+打包配置全部写在 `ClearC.spec` 里，**不要再在命令行堆参数**（会被 spec 覆盖或冲突）。
+spec 中裁掉了未使用的 Qt 组件（QML/Quick、Pdf、Network、OpenGL、虚拟键盘、
+90 多个翻译文件、OpenSSL 等），exe 由 47.4 MiB 降到 22.9 MiB（-51.8%）。
+裁剪逻辑与保留清单见 spec 内注释——**改 `DROP_NAMES` 时务必确认没删掉
+`qwindows.dll` / `qico.dll` / `Qt6Core|Gui|Widgets.dll`**，否则程序起不来或图标丢失。
 
 ## 目录结构
 ```

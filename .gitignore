@@ -2,7 +2,9 @@ __pycache__/
 *.pyc
 build/
 dist/
+# 构建配置要进仓库（ClearC.spec），只忽略 PyInstaller 自动生成的临时 spec
 *.spec
+!ClearC.spec
 reports/
 
 # 扫描报告：含本机真实文件路径，禁止提交到公开仓库
