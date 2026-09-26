@@ -17,6 +17,7 @@ PyInstaller 打包为单文件 exe。开发方：北京赛兰博科技发展有�
 | 入口 | `main.py` → `app/ui/main_window.py: run_gui()` |
 | 可执行文件 | `dist\ClearC.exe` |
 | 一键启动 | `一键启动.bat`（自动提权，优先跑 exe，回退跑源码） |
+| 远程仓库 | https://github.com/rulioo/ClearC （公开，分支 `main`） |
 | 图标 | `app.ico`（硬盘造型，多尺寸 16/24/32/48/64/128/256） |
 | 代码规模 | 35 个 Python 文件（`app/` 32 + `tools/` 2 + `main.py`） |
 
@@ -95,6 +96,26 @@ python -m PyInstaller --noconfirm --onefile --windowed --name ClearC \
 
 给用户用：双击 `一键启动.bat` 即可（自动弹 UAC 提权）。
 
+## 四之二、推送到 GitHub
+
+```bash
+git add -A && git commit -m "..." && git push
+```
+
+仓库地址 `https://github.com/rulioo/ClearC`，公开仓库，主分支 `main`。
+认证走 Git Credential Manager（`credential.helper=manager`），凭据已缓存，无需每次登录。
+
+**注意：这是公开仓库，提交前务必确认没混进本机数据。** `.gitignore` 已排除：
+
+- `reports/` 以及根目录的 `clearC_report_*.json`、`report.json`
+  —— 这些是**本机真实扫描报告**，含 `C:\Users\...` 下的实际文件路径、回收站条目、
+  磁盘容量，属于个人使用痕迹，不能公开
+- `build/`、`dist/`、`*.spec`、`desktop.ini`、`app_old.ico`
+
+`.gitattributes` 锁定了 `*.bat` 为 `eol=crlf`，保证 GBK 编码的一键启动脚本在任何
+平台 clone 下来都能直接双击运行（GBK 多字节字符的后续字节不会落在 0x0A/0x0D，
+换行转换不会破坏编码）。
+
 ## 五、踩过的坑（改代码前先看这里）
 
 1. **`一键启动.bat` 必须保持 GBK 编码 + CRLF 换行。**
@@ -123,6 +144,8 @@ python -m PyInstaller --noconfirm --onefile --windowed --name ClearC \
 
 - [ ] 版本号仍是 `0.1.0`，正式发布前可提到 `1.0.0`（改 `app/__init__.py` 一行）
 - [ ] exe 文件名仍是 `ClearC.exe`，如需中文名要同步改打包命令和 `一键启动.bat`
+- [ ] **许可证未定**：仓库是公开的，但没放 LICENSE 文件，法律上默认「保留所有权利」。
+      若打算开源需补 LICENSE；若保持闭源商用，建议在 README 里写明授权条款
 - [ ] 代码签名：目前 exe 未签名，分发时 Windows SmartScreen 会提示未知发布者
 - [ ] 打包体积可优化（当前 onefile 含整个 Qt，可用 `--exclude-module` 裁剪未用模块）
 - [ ] 一条遗留提问：早前一轮修订里用户提到过 `3）…` 但话没说完，始终未澄清，
